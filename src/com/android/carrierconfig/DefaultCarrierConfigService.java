@@ -48,6 +48,7 @@ import java.util.regex.Pattern;
 public class DefaultCarrierConfigService extends CarrierService {
 
     private static final String SPN_EMPTY_MATCH = "null";
+    private static final String ICCID_EMPTY_MATCH = "null";
 
     private static final String CARRIER_ID_PREFIX = "carrier_config_carrierid_";
 
@@ -338,6 +339,9 @@ public class DefaultCarrierConfigService extends CarrierService {
                 case "sku":
                     result = value.equalsIgnoreCase(sku);
                     break;
+                case "iccid":
+                    result = result && matchOnIccid(value, id);
+                    break;
                 default:
                     Log.e(TAG, "Unknown attribute " + attribute + "=" + value);
                     result = false;
@@ -393,6 +397,25 @@ public class DefaultCarrierConfigService extends CarrierService {
             Pattern spPattern = Pattern.compile(xmlSP, Pattern.CASE_INSENSITIVE);
             Matcher matcher = spPattern.matcher(currentSP);
             matchFound = matcher.matches();
+        }
+        return matchFound;
+    }
+
+    static boolean matchOnIccid(String xmlIccid, CarrierIdentifier id) {
+        boolean matchFound = false;
+        String iccid = id.getIccid();
+        if (ICCID_EMPTY_MATCH.equalsIgnoreCase(xmlIccid)) {
+            if (TextUtils.isEmpty(iccid)) {
+                matchFound = true;
+            }
+        } else if (iccid != null) {
+            String[] iccidList = xmlIccid.split(",");
+            for (String iccidPrefix : iccidList) {
+                if (iccid.startsWith(iccidPrefix)) {
+                    matchFound = true;
+                    break;
+                }
+            }
         }
         return matchFound;
     }
